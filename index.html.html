@@ -269,7 +269,6 @@ main{padding:26px 40px;max-width:1440px;margin:0 auto;}
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  const firebaseConfig = {
 // Your web app's Firebase configuration
 
 const firebaseConfig = {
@@ -287,7 +286,6 @@ const firebaseConfig = {
   appId: "1:674595323839:web:2c3c20fcc72c87d2c22b0a"
 
 };   
-  };
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
