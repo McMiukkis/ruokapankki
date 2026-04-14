@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ruokapankki</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Playfair+Display:wght@400;500&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+--bg:#F4F1F3;  --surface:#EAD1E1;  --card:#FFFFFF;  --border:#D8CCD2;
+--ink:#B0C6CB;  --muted:#8A7F86;  --accent:#8AA7AD;
+
+--kala:#8AA7AD;  --kala-bg:#E8F0F2;
+--liha:#E0A9C8;  --liha-bg:#F7EAF1;
+--kana:#F1B7D8;  --kana-bg:#FBEFF6;
+--kasvis:#C8B0BD;  --kasvis-bg:#F2E8ED;
+--keitto:#B0C6CB;  --keitto-bg:#EEF4F5;
+--vkl:#D4BFD0;  --vkl-bg:#F4EDF2;
+--ekstra:#CFCFCF;  --ekstra-bg:#F5F5F5;
+--warn:#E6A8A1;  --warn-bg:#FDECEC;
+--hint:#9BC7B5;  --hint-bg:#ECF7F3;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;}
+
+/* HEADER */
+header{
+  background:var(--ink);color:#F5F0E8;
+  padding:26px 40px 22px;
+  display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:10px;
+}
+header h1{font-family:'Inter',sans-serif;font-size:2rem;font-weight:300;letter-spacing:4px;text-transform:uppercase;}
+header h1 em{font-style:italic;color:#3A3A3A;}
+header p{font-size:0.78rem;color:#B0C6CB;letter-spacing:0.03em;}
+
+/* NAV */
+nav{background:var(--surface);display:flex;gap:3px;padding:10px 40px;border-bottom:1px solid var(--border);}
+nav button{
+  background:none;border:none;padding:7px 18px;border-radius:6px;
+  font-family:'Outfit',sans-serif;font-size:0.87rem;font-weight:500;
+  cursor:pointer;color:var(--muted);transition:all .15s;
+}
+nav button.active{background:var(--accent);color:white;}
+nav button:hover:not(.active){background:var(--border);}
+
+main{padding:26px 40px;max-width:1440px;margin:0 auto;}
+.view{display:none;}.view.active{display:block;}
+.sh{display:flex;align-items:baseline;gap:12px;margin-bottom:20px;}
+.sh h2{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:500;}
+.sh p{font-size:0.78rem;color:var(--muted);}
+
+/* ══════════ RUOKAPANKKI ══════════ */
+.add-panel{
+  background:var(--card);border:1px solid var(--border);border-radius:14px;
+  padding:22px;margin-bottom:26px;
+}
+.add-row{display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;margin-bottom:14px;}
+.field label{display:block;font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:5px;}
+.field input,.field select{
+  width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;
+  font-family:'Outfit',sans-serif;font-size:0.87rem;background:var(--bg);color:var(--ink);
+  transition:border-color .15s;
+}
+.field input:focus,.field select:focus{outline:none;border-color:var(--accent);}
+.field input::placeholder{color:var(--muted);}
+
+/* month picker */
+.month-picker{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;}
+.mp-btn{
+  padding:4px 10px;border-radius:5px;border:1.5px solid var(--border);
+  background:var(--bg);font-family:'Outfit',sans-serif;font-size:0.75rem;font-weight:500;
+  cursor:pointer;color:var(--muted);transition:all .12s;
+}
+.mp-btn.on{border-color:var(--accent);background:var(--accent);color:#fff;}
+.mp-all-btn{
+  padding:4px 10px;border-radius:5px;border:1.5px solid var(--border);
+  background:var(--bg);font-family:'Outfit',sans-serif;font-size:0.75rem;font-weight:500;
+  cursor:pointer;color:var(--muted);transition:all .12s;
+}
+.mp-all-btn.on{border-color:var(--ink);background:var(--ink);color:#fff;}
+
+/* tag rows */
+.tag-section{margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.tag-group label{display:block;font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px;}
+.tag-chips{display:flex;flex-wrap:wrap;gap:5px;}
+.chip{
+  padding:4px 11px;border-radius:20px;border:1.5px solid var(--border);
+  background:var(--bg);font-family:'Outfit',sans-serif;font-size:0.75rem;font-weight:500;
+  cursor:pointer;color:var(--muted);transition:all .12s;user-select:none;
+}
+.chip.on-avoid{border-color:var(--warn);background:var(--warn-bg);color:var(--warn);}
+.chip.on-waste{border-color:var(--hint);background:var(--hint-bg);color:var(--hint);}
+.chip-add{
+  padding:4px 11px;border-radius:20px;border:1.5px dashed var(--border);
+  background:none;font-family:'Outfit',sans-serif;font-size:0.75rem;
+  cursor:pointer;color:var(--muted);transition:all .12s;
+}
+.chip-add:hover{border-color:var(--accent);color:var(--accent);}
+
+.add-footer{display:flex;justify-content:flex-end;margin-top:16px;}
+.btn{padding:9px 22px;border:none;border-radius:8px;font-family:'Outfit',sans-serif;font-size:0.87rem;font-weight:600;cursor:pointer;transition:all .15s;}
+.btn-add{background:var(--ink);color:#F5F0E8;}
+.btn-add:hover{background:var(--accent);}
+
+/* filters */
+.filters{display:flex;gap:5px;margin-bottom:18px;flex-wrap:wrap;}
+.fb{
+  padding:4px 13px;border-radius:20px;border:1.5px solid var(--border);
+  background:none;font-family:'Outfit',sans-serif;font-size:0.77rem;font-weight:500;
+  cursor:pointer;color:var(--muted);transition:all .15s;
+}
+.fb.on{border-color:var(--ink);background:var(--ink);color:#F5F0E8;}
+
+/* dish grid */
+.dishes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:11px;}
+.dish-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:10px;padding:14px 14px 12px;position:relative;transition:box-shadow .15s;
+}
+.dish-card,.add-panel,.month-block {box-shadow:0 6px 20px rgba(0,0,0,0.04);border:none;}
+.dc-name{font-family:'Fraunces',serif;font-size:1rem;font-weight:600;margin-bottom:6px;padding-right:22px;line-height:1.25;}
+.dc-meta{font-size:0.73rem;color:var(--muted);margin-bottom:8px;}
+.dc-tags{display:flex;flex-wrap:wrap;gap:4px;}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:0.68rem;font-weight:600;}
+.badge-kala{background:var(--kala-bg);color:var(--kala);}
+.badge-liha{background:var(--liha-bg);color:var(--liha);}
+.badge-kana{background:var(--kana-bg);color:var(--kana);}
+.badge-kasvis{background:var(--kasvis-bg);color:var(--kasvis);}
+.badge-keitto{background:var(--keitto-bg);color:var(--keitto);}
+.badge-vkl{background:var(--vkl-bg);color:var(--vkl);}
+.badge-ekstra{background:var(--ekstra-bg);color:var(--ekstra);}
+.badge-avoid{background:var(--warn-bg);color:var(--warn);}
+.badge-waste{background:var(--hint-bg);color:var(--hint);}
+.dc-del{
+  position:absolute;top:10px;right:10px;background:none;border:none;
+  color:var(--border);cursor:pointer;font-size:0.85rem;padding:2px 4px;border-radius:4px;transition:all .12s;
+}
+.dc-del:hover{background:var(--liha-bg);color:var(--liha);}
+
+/* ══════════ KALENTERI ══════════ */
+.cal-legend{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:20px;font-size:0.76rem;color:var(--muted);}
+.li{display:flex;align-items:center;gap:5px;}
+.li-dot{width:8px;height:8px;border-radius:50%;}
+
+.year-wrap{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+.month-block{background:var(--card);border:1px solid var(--border);border-radius:13px;overflow:hidden;}
+.month-head{
+  padding:10px 16px;background:var(--ink);color:#F5F0E8;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.month-head h3{font-family:'Fraunces',serif;font-size:1rem;font-weight:300;}
+
+.weeks-wrap{padding:10px 11px 11px;display:flex;flex-direction:column;gap:7px;}
+.week-row{border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.week-label{
+  padding:4px 10px;background:var(--surface);
+  font-size:0.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;
+  color:var(--muted);display:flex;justify-content:space-between;align-items:center;
+  border-bottom:1px solid var(--border);
+}
+.week-label em{font-style:italic;font-weight:400;text-transform:none;letter-spacing:0;opacity:.7;}
+
+.slots-row{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;}
+.meal-slot{
+  padding:7px 8px;cursor:pointer;transition:background .12s;
+  min-height:58px;display:flex;flex-direction:column;gap:2px;
+  position:relative;border-right:1px solid var(--border);
+}
+.meal-slot:last-child{border-right:none;}
+.meal-slot:hover{background:var(--bg);}
+.slot-kala{border-top:2.5px solid var(--kala);}
+.slot-liha{border-top:2.5px solid var(--liha);}
+.slot-kana{border-top:2.5px solid var(--kana);}
+.slot-ekstra{border-top:2.5px solid var(--ekstra);}
+.slot-kasvis{border-top:2.5px solid var(--kasvis);}
+.slot-keitto{border-top:2.5px solid var(--keitto);}
+.slot-vkl{border-top:2.5px solid var(--vkl);}
+.slot-type-lbl{font-size:0.58rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;opacity:.45;}
+.slot-name{font-size:0.76rem;font-weight:500;line-height:1.2;flex:1;}
+.slot-empty{font-size:0.72rem;color:var(--muted);opacity:.35;font-style:italic;}
+.slot-clear{
+  position:absolute;top:3px;right:4px;background:none;border:none;
+  color:transparent;cursor:pointer;font-size:0.62rem;transition:color .12s;
+}
+.meal-slot:hover .slot-clear{color:var(--border);}
+.slot-clear:hover{color:var(--liha) !important;}
+
+/* warning badges on slots */
+.slot-warn{background:var(--warn-bg) !important;}
+.slot-hint{outline:1.5px solid var(--hint);outline-offset:-1px;}
+.slot-warn-dot,.slot-hint-dot{
+  position:absolute;bottom:4px;right:5px;
+  width:6px;height:6px;border-radius:50%;
+}
+.slot-warn-dot{background:var(--warn);}
+.slot-hint-dot{background:var(--hint);}
+
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;align-items:center;justify-content:center;}
+.overlay.open{display:flex;}
+.modal{
+  background:var(--card);border:1px solid var(--border);border-radius:15px;padding:24px;
+  width:420px;max-height:72vh;overflow-y:auto;box-shadow:0 24px 70px rgba(0,0,0,.18);
+}
+.modal h3{font-family:'Fraunces',serif;font-size:1.1rem;font-weight:600;margin-bottom:3px;}
+.modal-sub{font-size:0.76rem;color:var(--muted);margin-bottom:16px;line-height:1.5;}
+.modal-warn{background:var(--warn-bg);border:1px solid #F0C8A8;border-radius:7px;padding:8px 12px;font-size:0.78rem;color:var(--warn);margin-bottom:12px;line-height:1.45;}
+.modal-hint{background:var(--hint-bg);border:1px solid #A8D8B8;border-radius:7px;padding:8px 12px;font-size:0.78rem;color:var(--hint);margin-bottom:12px;line-height:1.45;}
+.modal-sec{font-size:0.67rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:12px 0 5px;}
+.dish-opt{
+  padding:9px 12px;border-radius:7px;cursor:pointer;margin-bottom:4px;
+  border:1.5px solid var(--border);transition:all .12s;
+}
+.dish-opt:hover{border-color:var(--accent);background:#F0F7F2;}
+.dish-opt.opt-warn{border-color:#F0C8A8;background:var(--warn-bg);}
+.dish-opt.opt-hint{border-color:#A8D8B8;background:var(--hint-bg);}
+.opt-name{font-size:0.86rem;font-weight:500;}
+.opt-sub{font-size:0.71rem;color:var(--muted);margin-top:1px;}
+.opt-flag{font-size:0.7rem;margin-top:2px;}
+.modal-cancel{
+  margin-top:12px;width:100%;padding:9px;border:1.5px solid var(--border);border-radius:7px;
+  background:none;font-family:'Outfit',sans-serif;font-size:0.84rem;cursor:pointer;
+  color:var(--muted);transition:all .12s;
+}
+.modal-cancel:hover{border-color:var(--muted);color:var(--ink);}
+
+/* TAG MANAGER MODAL */
+.tag-mgr-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;}
+.tag-mgr-overlay.open{display:flex;}
+.tag-mgr{background:var(--card);border-radius:14px;padding:24px;width:440px;max-height:75vh;overflow-y:auto;box-shadow:0 24px 70px rgba(0,0,0,.18);}
+.tag-mgr h3{font-family:'Fraunces',serif;font-size:1.1rem;font-weight:600;margin-bottom:18px;}
+.tmg-section{margin-bottom:20px;}
+.tmg-section h4{font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px;}
+.tmg-list{display:flex;flex-direction:column;gap:5px;margin-bottom:8px;}
+.tmg-item{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:7px 11px;border:1px solid var(--border);border-radius:7px;font-size:0.84rem;background:var(--bg);
+}
+.tmg-del{background:none;border:none;color:var(--border);cursor:pointer;font-size:0.8rem;padding:1px 4px;border-radius:3px;transition:all .12s;}
+.tmg-del:hover{background:var(--liha-bg);color:var(--liha);}
+.tmg-add-row{display:flex;gap:7px;}
+.tmg-add-row input{
+  flex:1;padding:7px 11px;border:1.5px solid var(--border);border-radius:7px;
+  font-family:'Outfit',sans-serif;font-size:0.84rem;background:var(--bg);color:var(--ink);
+}
+.tmg-add-row input:focus{outline:none;border-color:var(--accent);}
+.tmg-add-row button{
+  padding:7px 14px;border:none;border-radius:7px;background:var(--ink);color:#F5F0E8;
+  font-family:'Outfit',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;transition:all .12s;white-space:nowrap;
+}
+.tmg-add-row button:hover{background:var(--accent);}
+
+.toast{
+  position:fixed;bottom:24px;right:24px;background:var(--ink);color:#F5F0E8;
+  padding:9px 18px;border-radius:8px;font-size:0.83rem;font-weight:500;
+  opacity:0;transform:translateY(8px);transition:all .25s;pointer-events:none;z-index:300;
+}
+.toast.show{opacity:1;transform:translateY(0);}
+
+@media(max-width:1100px){.year-wrap{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:700px){
+  main,nav,header{padding-left:14px;padding-right:14px;}
+  .add-row{grid-template-columns:1fr;}
+  .tag-section{grid-template-columns:1fr;}
+  .year-wrap{grid-template-columns:1fr;}
+}
+</style>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+
+// Your web app's Firebase configuration
+
+const firebaseConfig = {
+
+  apiKey: "AIzaSyCj6bHv3o0m30z5WvJvQgZqdssYBN5OQi4",
+
+  authDomain: "ruokapankki.firebaseapp.com",
+
+  projectId: "ruokapankki",
+
+  storageBucket: "ruokapankki.firebasestorage.app",
+
+  messagingSenderId: "674595323839",
+
+  appId: "1:674595323839:web:2c3c20fcc72c87d2c22b0a"
+
+};   
+ 
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const DATA_DOC = doc(db, "ruokalista", "mydata");
+
+  window.fbSave = async function(data) {
+    await setDoc(DATA_DOC, data);
+  };
+
+  window.fbLoad = async function() {
+    const snap = await getDoc(DATA_DOC);
+    return snap.exists() ? snap.data() : null;
+  };
+
+  window.fbListen = function(callback) {
+    onSnapshot(DATA_DOC, (snap) => {
+      if (snap.exists()) callback(snap.data());
+    });
+  };
+</script>
+</head>
+<body>
+
+<header>
+  <h1>Ruoka<em>lista</em></h1>
+  <p>Pääruoat · Sesongit · Viikkorakenne · Hävikkitunnisteet</p>
+</header>
+
+<nav>
+  <button class="active" onclick="showView('dishes',this)">Ruokapankki</button>
+  <button onclick="showView('calendar',this)">Kalenteri</button>
+  <button onclick="openTagMgr()">Tunnisteet</button>
+</nav>
+
+<main>
+
+<!-- ══ RUOKAPANKKI ══ -->
+<div class="view active" id="view-dishes">
+  <div class="sh"><h2>Ruokapankki</h2><p>Kaikki tallennetut pääruoat</p></div>
+
+  <div class="add-panel">
+    <div class="add-row">
+      <div class="field">
+        <label>Ruoan nimi</label>
+        <input type="text" id="inp-name" placeholder="esim. Broileri-currykastike" onkeydown="if(event.key==='Enter')addDish()"/>
+      </div>
+      <div class="field">
+        <label>Proteiini / tyyppi</label>
+        <select id="inp-cat">
+          <option value="kasvis">🍄 Kasvis</option>
+          <option value="kala">🐳 Kala</option>
+          <option value="kana">🦩 Kana</option>
+          <option value="liha">🥩 Liha</option>
+          <option value="keitto">🍲 Keitto</option>
+          <option value="vkl">🍱 Viikonloppu</option>
+          <option value="ekstra">🫧 Ekstra</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Sesonki — kuukaudet</label>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:6px;">
+          <button class="mp-all-btn on" id="mp-all" onclick="toggleAllMonths()">Ympäri vuoden</button>
+        </div>
+        <div class="month-picker" id="month-picker">
+          <button class="mp-btn" data-m="0" onclick="toggleMonth(this)">Tam</button>
+          <button class="mp-btn" data-m="1" onclick="toggleMonth(this)">Hel</button>
+          <button class="mp-btn" data-m="2" onclick="toggleMonth(this)">Maa</button>
+          <button class="mp-btn" data-m="3" onclick="toggleMonth(this)">Huh</button>
+          <button class="mp-btn" data-m="4" onclick="toggleMonth(this)">Tou</button>
+          <button class="mp-btn" data-m="5" onclick="toggleMonth(this)">Kes</button>
+          <button class="mp-btn" data-m="6" onclick="toggleMonth(this)">Hei</button>
+          <button class="mp-btn" data-m="7" onclick="toggleMonth(this)">Elo</button>
+          <button class="mp-btn" data-m="8" onclick="toggleMonth(this)">Syy</button>
+          <button class="mp-btn" data-m="9" onclick="toggleMonth(this)">Lok</button>
+          <button class="mp-btn" data-m="10" onclick="toggleMonth(this)">Mar</button>
+          <button class="mp-btn" data-m="11" onclick="toggleMonth(this)">Jou</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="tag-section">
+      <div class="tag-group">
+        <label>🚫 Harvoin-tunnisteet (ei samalle viikolle)</label>
+        <div class="tag-chips" id="avoid-chips"></div>
+      </div>
+      <div class="tag-group">
+        <label>♻️ Hävikkitunnisteet (suositellaan samalle viikolle)</label>
+        <div class="tag-chips" id="waste-chips"></div>
+      </div>
+    </div>
+
+ <div class="add-footer" style="gap:10px;display:flex;">
+  <button class="btn btn-add" onclick="addDish()">+ Lisää ruoka</button>
+  <button class="btn" onclick="exportData()">💾 Vie</button>
+  <button class="btn" onclick="importData()">📂 Tuo</button>
+ </div>
+  </div>
+
+  <div class="filters" id="filter-row">
+    <button class="fb on" onclick="setFilter('all',this)">Kaikki</button>
+    <button class="fb" onclick="setFilter('kasvis',this)">🍄 Kasvis</button>
+    <button class="fb" onclick="setFilter('kala',this)">🐳 Kala</button>
+    <button class="fb" onclick="setFilter('kana',this)">🦩 Kana</button>
+    <button class="fb" onclick="setFilter('liha',this)">🥩 Liha</button>
+    <button class="fb" onclick="setFilter('keitto',this)">🍲 Keitto</button>
+    <button class="fb" onclick="setFilter('vkl',this)">🍱 Viikonloppu</button>
+    <button class="fb" onclick="setFilter('ekstra',this)">🫧 Ekstra</button>
+  </div>
+
+  <div class="dishes-grid" id="dishes-grid"></div>
+</div>
+
+<!-- ══ KALENTERI ══ -->
+<div class="view" id="view-calendar">
+  <div class="sh"><h2>Vuosikalenteri</h2><p>Klikkaa paikkaa · 💥 harvoin-konflikti · 🟢 hävikkisuositus</p></div>
+  <div class="cal-legend">
+    <div class="li"><div class="li-dot" style="background:var(--kala)"></div>Kala (vk1)</div>
+    <div class="li"><div class="li-dot" style="background:var(--liha)"></div>Liha (vk2)</div>
+    <div class="li"><div class="li-dot" style="background:var(--kana)"></div>Kana (vk3)</div>
+    <div class="li"><div class="li-dot" style="background:var(--ekstra)"></div>Ekstra (vk4)</div>
+    <div class="li"><div class="li-dot" style="background:var(--kasvis)"></div>Kasvis</div>
+    <div class="li"><div class="li-dot" style="background:var(--keitto)"></div>Keitto</div>
+    <div class="li"><div class="li-dot" style="background:var(--vkl)"></div>Viikonloppu</div>
+    <div class="li"><div class="li-dot" style="background:var(--warn)"></div>Harvoin-konflikti</div>
+    <div class="li"><div class="li-dot" style="background:var(--hint)"></div>Hävikkisuositus</div>
+  </div>
+  <div class="year-wrap" id="year-wrap"></div>
+</div>
+
+</main>
+
+<!-- DISH PICKER MODAL -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h3 id="modal-title">Valitse ruoka</h3>
+    <div class="modal-sub" id="modal-sub"></div>
+    <div id="modal-warn-box"></div>
+    <div id="modal-hint-box"></div>
+    <div id="modal-list"></div>
+    <button class="modal-cancel" onclick="closeModal()">Peruuta</button>
+  </div>
+</div>
+
+<!-- TAG MANAGER MODAL -->
+<div class="tag-mgr-overlay" id="tag-mgr-overlay">
+  <div class="tag-mgr">
+    <h3>Tunnistehallinta</h3>
+    <div class="tmg-section">
+      <h4>🚫 Harvoin-tunnisteet — ei mielellään samalla viikolla tai monta kertaa kuussa</h4>
+      <div class="tmg-list" id="avoid-list"></div>
+      <div class="tmg-add-row">
+        <input type="text" id="avoid-input" placeholder="Uusi tunniste..." onkeydown="if(event.key==='Enter')addTag('avoid')"/>
+        <button onclick="addTag('avoid')">+ Lisää</button>
+      </div>
+    </div>
+    <div class="tmg-section">
+      <h4>♻️ Hävikkitunnisteet — suositellaan parin lähiviikolle</h4>
+      <div class="tmg-list" id="waste-list"></div>
+      <div class="tmg-add-row">
+        <input type="text" id="waste-input" placeholder="Uusi ainesosa..." onkeydown="if(event.key==='Enter')addTag('waste')"/>
+        <button onclick="addTag('waste')">+ Lisää</button>
+      </div>
+    </div>
+    <button class="modal-cancel" onclick="closeTagMgr()" style="margin-top:0">Sulje</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════
+const MONTHS=['Tammikuu','Helmikuu','Maaliskuu','Huhtikuu','Toukokuu','Kesäkuu',
+              'Heinäkuu','Elokuu','Syyskuu','Lokakuu','Marraskuu','Joulukuu'];
+const MONTH_SHORT=['Tam','Hel','Maa','Huh','Tou','Kes','Hei','Elo','Syy','Lok','Mar','Jou'];
+// Slot defs per week (wi=0..3), si=0..3
+// si0=proteiini rotates kala/liha/kana/ekstra, si1=kasvis, si2=keitto, si3=vkl
+const PROT_ROT=['kala','liha','kana','ekstra'];
+const SLOT_LABELS=['Proteiini','Kasvis','Keitto','Vkl'];
+const CAT_LABEL={kala:'🐳 Kala',liha:'🥩 Liha',kana:'🦩 Kana',kasvis:'🍄 Kasvis',keitto:'🍲 Keitto',vkl:'🍱 Vkl',ekstra:'🫧 Ekstra'};
+
+const DEF_AVOID=['salaatti','pasta','bowl','tortilla','uuni','wokki','risotto'];
+const DEF_WASTE=['koskenlaskija','punainen pesto','vihreä pesto','oliivi','jalapeño'];
+
+function load(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch{return d;}}
+function save(k,v){localStorage.setItem(k,JSON.stringify(v));}
+
+let dishes   = load('rl_dishes',[]);
+let cal      = load('rl_cal', Array.from({length:12},()=>Array.from({length:4},()=>[null,null,null,null])));
+let avoidTags= load('rl_avoid', [...DEF_AVOID]);
+let wasteTags= load('rl_waste', [...DEF_WASTE]);
+let editingId = null;
+
+// form state
+let formMonths=null; // null = all months
+
+// selected avoid/waste tags for new dish
+let selAvoid=new Set();
+let selWaste=new Set();
+
+function saveAll(){
+  save('rl_dishes',dishes);
+  save('rl_cal',cal);
+  save('rl_avoid',avoidTags);
+  save('rl_waste',wasteTags);
+  // Tallenna myös pilveen
+  if(window.fbSave){
+    window.fbSave({dishes, cal, avoidTags, wasteTags}).catch(console.error);
+  }
+}
+
+// ═══════════════════════════════════════════
+// VIEWS
+// ═══════════════════════════════════════════
+function showView(v,btn){
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  btn.classList.add('active');
+  if(v==='calendar')renderCalendar();
+}
+
+// ═══════════════════════════════════════════
+// MONTH PICKER
+// ═══════════════════════════════════════════
+function toggleAllMonths(){
+  formMonths=null;
+  document.getElementById('mp-all').classList.add('on');
+  document.querySelectorAll('.mp-btn').forEach(b=>b.classList.remove('on'));
+}
+function toggleMonth(btn){
+  const m=parseInt(btn.dataset.m);
+  if(formMonths===null) formMonths=[];
+  const idx=formMonths.indexOf(m);
+  if(idx===-1){formMonths.push(m);btn.classList.add('on');}
+  else{formMonths.splice(idx,1);btn.classList.remove('on');}
+  if(formMonths.length===0){formMonths=null;document.getElementById('mp-all').classList.add('on');}
+  else document.getElementById('mp-all').classList.remove('on');
+}
+
+// ═══════════════════════════════════════════
+// TAG CHIPS (in add form)
+// ═══════════════════════════════════════════
+function renderFormChips(){
+  const ac=document.getElementById('avoid-chips');
+  const wc=document.getElementById('waste-chips');
+  ac.innerHTML=avoidTags.map(t=>`<span class="chip ${selAvoid.has(t)?'on-avoid':''}" onclick="toggleChip('avoid','${t}',this)">${t}</span>`).join('');
+  wc.innerHTML=wasteTags.map(t=>`<span class="chip ${selWaste.has(t)?'on-waste':''}" onclick="toggleChip('waste','${t}',this)">${t}</span>`).join('');
+}
+function toggleChip(type,tag,el){
+  if(type==='avoid'){
+    if(selAvoid.has(tag)){selAvoid.delete(tag);el.classList.remove('on-avoid');}
+    else{selAvoid.add(tag);el.classList.add('on-avoid');}
+  } else {
+    if(selWaste.has(tag)){selWaste.delete(tag);el.classList.remove('on-waste');}
+    else{selWaste.add(tag);el.classList.add('on-waste');}
+  }
+}
+
+// ═══════════════════════════════════════════
+// DISHES
+// ═══════════════════════════════════════════
+
+function addDish(){
+  const name=document.getElementById('inp-name').value.trim();
+  if(!name){toast('Anna ruoalle nimi!');return;}
+
+  if(editingId){
+    // päivitä olemassa oleva
+    const d = dishById(editingId);
+    if(d){
+      d.name = name;
+      d.cat = document.getElementById('inp-cat').value;
+      d.months = formMonths ? [...formMonths] : null;
+      d.avoid = [...selAvoid];
+      d.waste = [...selWaste];
+    }
+    editingId = null;
+    toast('Muutokset tallennettu!');
+  } else {
+    // uusi ruoka
+    dishes.push({
+      id:Date.now(),
+      name,
+      cat:document.getElementById('inp-cat').value,
+      months:formMonths?[...formMonths]:null,
+      avoid:[...selAvoid],
+      waste:[...selWaste],
+    });
+    toast('Lisätty!');
+  }
+
+  saveAll();
+
+  // reset form
+  document.getElementById('inp-name').value='';
+  formMonths = null;
+  document.getElementById('mp-all').classList.add('on');
+  document.querySelectorAll('.mp-btn').forEach(b=>b.classList.remove('on'));
+
+  selAvoid=new Set();
+  selWaste=new Set();
+
+  renderFormChips();
+  renderDishes();
+}
+
+function editDish(id){
+  const d = dishById(id);
+  if(!d) return;
+
+  editingId = id;
+
+  // täytä kentät
+  document.getElementById('inp-name').value = d.name;
+  document.getElementById('inp-cat').value = d.cat;
+
+  // kuukaudet
+  formMonths = d.months ? [...d.months] : null;
+
+  document.getElementById('mp-all').classList.toggle('on', !formMonths);
+  document.querySelectorAll('.mp-btn').forEach(btn=>{
+    const m = parseInt(btn.dataset.m);
+    btn.classList.toggle('on', formMonths && formMonths.includes(m));
+  });
+
+  // tagit
+  selAvoid = new Set(d.avoid || []);
+  selWaste = new Set(d.waste || []);
+  renderFormChips();
+
+  toast("Muokkaat ruokaa");
+}
+
+function deleteDish(id){
+  dishes=dishes.filter(d=>d.id!==id);
+  for(let m=0;m<12;m++) for(let w=0;w<4;w++) for(let s=0;s<4;s++)
+    if(cal[m][w][s]===id) cal[m][w][s]=null;
+  saveAll(); renderDishes(); renderCalendar();
+}
+
+let activeFilter='all';
+function setFilter(f,btn){
+  activeFilter=f;
+  document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  renderDishes();
+}
+
+function dishById(id){return dishes.find(d=>d.id===id)||null;}
+
+function getBestDish(mi, wi, si){
+  const cat = slotCat(wi, si);
+
+  // kaikki mahdolliset ruuat tähän slottiin
+  let candidates = dishes.filter(d =>
+    dishAvailableForMonth(d, mi) &&
+    (si !== 0 || cat === 'ekstra' || d.cat === cat)
+  );
+
+  if(!candidates.length) return null;
+
+  // viikon data
+  const weekIds = weekDishIds(mi, wi);
+  const weekAvoid = new Set();
+  const weekWaste = new Set();
+
+  weekIds.forEach(id=>{
+    const d = dishById(id);
+    if(!d) return;
+    (d.avoid||[]).forEach(t=>weekAvoid.add(t));
+    (d.waste||[]).forEach(t=>weekWaste.add(t));
+  });
+
+  // pisteytys
+  const scored = candidates.map(d=>{
+    let score = 0;
+
+    // vältä konflikteja
+    if((d.avoid||[]).some(t=>weekAvoid.has(t))){
+      score -= 50;
+    }
+
+    // suosi hävikkiä
+    if((d.waste||[]).some(t=>weekWaste.has(t))){
+      score += 30;
+    }
+
+    // pieni random ettei aina sama
+    score += Math.random() * 10;
+
+    return {d, score};
+  });
+
+  // paras
+  scored.sort((a,b)=>b.score-a.score);
+  return scored[0].d;
+}
+
+function monthsLabel(d){
+  if(!d.months) return 'Ympäri vuoden';
+  return d.months.map(m=>MONTH_SHORT[m]).join(', ');
+}
+
+function renderDishes(){
+  const grid=document.getElementById('dishes-grid');
+  const list=dishes.filter(d=>activeFilter==='all'||d.cat===activeFilter);
+  if(!list.length){grid.innerHTML='<p style="color:var(--muted);font-size:0.85rem">Ei ruokia.</p>';return;}
+  grid.innerHTML=list.map(d=>`
+    <div class="dish-card">
+      <div class="dc-name">${d.name}</div>
+      <div class="dc-meta">${monthsLabel(d)}</div>
+      <div class="dc-tags">
+        <span class="badge badge-${d.cat}">${CAT_LABEL[d.cat]||d.cat}</span>
+        ${(d.avoid||[]).map(t=>`<span class="badge badge-avoid">🚫${t}</span>`).join('')}
+        ${(d.waste||[]).map(t=>`<span class="badge badge-waste">♻️${t}</span>`).join('')}
+      </div>
+      <button class="dc-del" onclick="deleteDish(${d.id})">✕</button>
+      <button class="dc-del" style="right:28px;color:var(--muted);" onclick="editDish(${d.id})">✏️</button>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════
+// CALENDAR LOGIC
+// ═══════════════════════════════════════════
+function slotCat(wi,si){
+  if(si===0) return PROT_ROT[wi];
+  if(si===1) return 'kasvis';
+  if(si===2) return 'keitto';
+  return 'vkl';
+}
+
+// Is dish available for a given month?
+function dishAvailableForMonth(d,mi){
+  if(!d.months) return true;
+  return d.months.includes(mi);
+}
+
+// Get all dish ids assigned in a given month
+function monthDishIds(mi){
+  const ids=[];
+  for(let w=0;w<4;w++) for(let s=0;s<4;s++){const id=cal[mi][w][s];if(id)ids.push(id);}
+  return ids;
+}
+
+// Get all dish ids in a given week (across all slots)
+function weekDishIds(mi,wi){
+  return cal[mi][wi].filter(id=>id!==null);
+}
+
+// Check avoid conflicts: returns set of (mi,wi) slot positions with conflicts
+function avoidConflictsInWeek(mi,wi){
+  const ids=weekDishIds(mi,wi);
+  const tagCounts={};
+  ids.forEach(id=>{
+    const d=dishById(id);
+    if(!d) return;
+    (d.avoid||[]).forEach(t=>{ tagCounts[t]=(tagCounts[t]||[]); tagCounts[t].push(id); });
+  });
+  // return set of ids that conflict (same avoid tag more than once in week)
+  const conflictIds=new Set();
+  Object.values(tagCounts).forEach(arr=>{ if(arr.length>1) arr.forEach(id=>conflictIds.add(id)); });
+  return conflictIds;
+}
+
+// Check waste hints: for a given slot being filled, which waste tags from this week's other dishes should we suggest?
+function wasteHintsForWeek(mi,wi,excludeSlot){
+  const tags=new Set();
+  for(let s=0;s<4;s++){
+    if(s===excludeSlot) continue;
+    const id=cal[mi][wi][s]; if(!id) continue;
+    const d=dishById(id); if(!d) continue;
+    (d.waste||[]).forEach(t=>tags.add(t));
+  }
+  return tags;
+}
+
+// Check if a dish slot has an avoid conflict in its week
+function slotHasConflict(mi,wi,si){
+  const id=cal[mi][wi][si]; if(!id) return false;
+  return avoidConflictsInWeek(mi,wi).has(id);
+}
+
+// Check if a slot has a waste hint (another dish in week shares a waste tag)
+function slotHasHint(mi,wi,si){
+  const id=cal[mi][wi][si]; if(!id) return false;
+  const d=dishById(id); if(!d) return false;
+  const weekWasteTags=wasteHintsForWeek(mi,wi,si);
+  return (d.waste||[]).some(t=>weekWasteTags.has(t));
+}
+
+function renderCalendar(){
+  const wrap=document.getElementById('year-wrap');
+  wrap.innerHTML=MONTHS.map((mname,mi)=>{
+    const weeksHtml=Array.from({length:4},(_,wi)=>{
+      const protCat=PROT_ROT[wi];
+      const slotsHtml=Array.from({length:4},(_,si)=>{
+        const cat=slotCat(wi,si);
+        const id=cal[mi][wi][si];
+        const d=id?dishById(id):null;
+        const conflict=id?slotHasConflict(mi,wi,si):false;
+        const hint=id?slotHasHint(mi,wi,si):false;
+        return `
+          <div class="meal-slot slot-${cat}${conflict?' slot-warn':''}${hint?' slot-hint':''}"
+               onclick="openPick(${mi},${wi},${si})">
+            <div class="slot-type-lbl">${SLOT_LABELS[si]}</div>
+            ${d?`<div class="slot-name">${d.name}</div>`:`<div class="slot-empty">+ lisää</div>`}
+            ${d?`<button class="slot-clear" onclick="event.stopPropagation();clearSlot(${mi},${wi},${si})">✕</button>`:''}
+            ${conflict?`<div class="slot-warn-dot" title="Sama tunniste samalla viikolla"></div>`:''}
+            ${(!conflict&&hint)?`<div class="slot-hint-dot" title="Hävikkisuositus käytössä"></div>`:''}
+          </div>`;
+      }).join('');
+      return `
+        <div class="week-row">
+          <div class="week-label">Viikko ${wi+1} <em>${protCat}</em></div>
+          <div class="slots-row">${slotsHtml}</div>
+        </div>`;
+    }).join('');
+    return `
+      <div class="month-block">
+        <div class="month-head"><h3>${mname}</h3></div>
+        <div class="weeks-wrap">${weeksHtml}</div>
+      </div>`;
+  }).join('');
+}
+
+function clearSlot(mi,wi,si){cal[mi][wi][si]=null;saveAll();renderCalendar();}
+
+// ═══════════════════════════════════════════
+// PICKER MODAL
+// ═══════════════════════════════════════════
+let pendingPick=null;
+
+function openPick(mi,wi,si){
+  pendingPick={mi,wi,si};
+  const cat=slotCat(wi,si);
+
+  // Warnings: avoid tags already in this week
+  const weekIds=weekDishIds(mi,wi).filter(id=>id!==cal[mi][wi][si]);
+  const weekAvoidTags=new Set();
+  weekIds.forEach(id=>{const d=dishById(id);if(d)(d.avoid||[]).forEach(t=>weekAvoidTags.add(t));});
+
+  // Waste hints: waste tags from other dishes in week
+  const weekWasteTags=wasteHintsForWeek(mi,wi,si);
+
+  document.getElementById('modal-title').textContent=`${MONTHS[mi]} · Viikko ${wi+1} · ${SLOT_LABELS[si]}`;
+  document.getElementById('modal-sub').textContent=`Kategoria: ${CAT_LABEL[cat]||cat}`;
+
+  // warn/hint boxes
+  const wb=document.getElementById('modal-warn-box');
+  const hb=document.getElementById('modal-hint-box');
+  wb.innerHTML=weekAvoidTags.size?`<div class="modal-warn">⚠️ Tällä viikolla on jo tunnisteet: <strong>${[...weekAvoidTags].join(', ')}</strong> — vältä näitä jos mahdollista.</div>`:'';
+  hb.innerHTML=weekWasteTags.size?`<div class="modal-hint">♻️ Hävikkisuositus: etsi ruoka jossa on: <strong>${[...weekWasteTags].join(', ')}</strong></div>`:'';
+
+  // Sort dishes
+let suitable = [];
+let other = [];
+
+// PROTEIINI-slot (viikkorotaatio ratkaisee)
+if(si === 0){
+  if(cat === 'ekstra'){
+    // ekstra = kaikki käy
+    suitable = dishes.filter(d => dishAvailableForMonth(d,mi));
+  } else {
+    // vain oikea proteiini
+    suitable = dishes.filter(d => d.cat === cat && dishAvailableForMonth(d,mi));
+  }
+  other = [];
+}
+
+// KASVIS
+else if(cat === 'kasvis'){
+  suitable = dishes.filter(d => d.cat === 'kasvis' && dishAvailableForMonth(d,mi));
+  other = [];
+}
+
+// KEITTO
+else if(cat === 'keitto'){
+  suitable = dishes.filter(d => d.cat === 'keitto' && dishAvailableForMonth(d,mi));
+  other = [];
+}
+
+// VIIKONLOPPU
+else if(cat === 'vkl'){
+  // ensisijaiset
+  suitable = dishes.filter(d => d.cat === 'vkl' && dishAvailableForMonth(d,mi));
+  
+  // muut sallitaan
+  other = dishes.filter(d => d.cat !== 'vkl' && dishAvailableForMonth(d,mi));
+}
+
+    const offseason=dishes.filter(d=>!dishAvailableForMonth(d,mi));
+
+  function renderOpt(d){
+    const hasConflict=(d.avoid||[]).some(t=>weekAvoidTags.has(t));
+    const hasHint=(d.waste||[]).some(t=>weekWasteTags.has(t))||(d.avoid||[]).length===0&&weekWasteTags.size>0?false:(d.waste||[]).some(t=>weekWasteTags.has(t));
+    const cls=hasConflict?'opt-warn':hasHint?'opt-hint':'';
+    const flag=hasConflict?`<div class="opt-flag" style="color:var(--warn)">⚠️ Tunnistekonflikti: ${(d.avoid||[]).filter(t=>weekAvoidTags.has(t)).join(', ')}</div>`:
+               hasHint?`<div class="opt-flag" style="color:var(--hint)">♻️ Sopii hävikin vähentämiseen: ${(d.waste||[]).filter(t=>weekWasteTags.has(t)).join(', ')}</div>`:'';
+    return `<div class="dish-opt ${cls}" onclick="pickDish(${d.id})">
+      <div class="opt-name">${d.name}</div>
+      <div class="opt-sub">${CAT_LABEL[d.cat]||d.cat} · ${monthsLabel(d)}</div>
+      ${flag}
+    </div>`;
+  }
+
+  let html='';
+  if(suitable.length){html+=`<div class="modal-sec">✅ Sopivat (${CAT_LABEL[cat]||cat})</div>`+suitable.map(renderOpt).join('');}
+  if(other.length){html+=`<div class="modal-sec">Muut kategoriat</div>`+other.map(renderOpt).join('');}
+  if(offseason.length){html+=`<div class="modal-sec" style="opacity:.5">Ei sesongissa</div>`+offseason.map(d=>`
+    <div class="dish-opt" style="opacity:.45" onclick="pickDish(${d.id})">
+      <div class="opt-name">${d.name}</div>
+      <div class="opt-sub">${CAT_LABEL[d.cat]||d.cat} · ${monthsLabel(d)}</div>
+    </div>`).join('');}
+  if(!html)html='<p style="color:var(--muted);font-size:0.84rem;padding:8px 0">Ruokapankki on tyhjä. Lisää ensin ruoat.</p>';
+
+  const best = getBestDish(mi, wi, si);
+
+let bestBtn = '';
+if(best){
+  bestBtn = `
+    <div style="margin-bottom:10px;">
+      <button class="btn btn-add" style="width:100%;" onclick="pickDish(${best.id})">
+        🔮 Paras ehdotus: ${best.name}
+      </button>
+    </div>
+  `;
+}
+
+document.getElementById('modal-list').innerHTML = bestBtn + html;
+  document.getElementById('overlay').classList.add('open');
+}
+
+function pickDish(id){
+  if(!pendingPick) return;
+  const{mi,wi,si}=pendingPick;
+  cal[mi][wi][si]=id;
+  saveAll(); closeModal(); renderCalendar();
+}
+
+function closeModal(){document.getElementById('overlay').classList.remove('open');pendingPick=null;}
+
+// ═══════════════════════════════════════════
+// TAG MANAGER
+// ═══════════════════════════════════════════
+function openTagMgr(){
+  renderTagMgr();
+  document.getElementById('tag-mgr-overlay').classList.add('open');
+}
+function closeTagMgr(){document.getElementById('tag-mgr-overlay').classList.remove('open');renderFormChips();}
+
+function renderTagMgr(){
+  document.getElementById('avoid-list').innerHTML=avoidTags.map((t,i)=>`
+    <div class="tmg-item"><span>${t}</span><button class="tmg-del" onclick="removeTag('avoid',${i})">✕</button></div>`).join('');
+  document.getElementById('waste-list').innerHTML=wasteTags.map((t,i)=>`
+    <div class="tmg-item"><span>${t}</span><button class="tmg-del" onclick="removeTag('waste',${i})">✕</button></div>`).join('');
+}
+
+function addTag(type){
+  const inp=document.getElementById(type+'-input');
+  const val=inp.value.trim().toLowerCase();
+  if(!val){toast('Kirjoita tunniste!');return;}
+  if(type==='avoid'){if(!avoidTags.includes(val)){avoidTags.push(val);}}
+  else{if(!wasteTags.includes(val)){wasteTags.push(val);}}
+  saveAll(); inp.value=''; renderTagMgr();
+}
+
+function removeTag(type,idx){
+  if(type==='avoid'){
+    const tag=avoidTags[idx];
+    avoidTags.splice(idx,1);
+    dishes.forEach(d=>{if(d.avoid)d.avoid=d.avoid.filter(t=>t!==tag);});
+  } else {
+    const tag=wasteTags[idx];
+    wasteTags.splice(idx,1);
+    dishes.forEach(d=>{if(d.waste)d.waste=d.waste.filter(t=>t!==tag);});
+  }
+  saveAll(); renderTagMgr(); renderDishes();
+}
+
+// ═══════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+renderFormChips();
+renderDishes();
+
+
+// ═══════════════════════════════════════════
+// EXPORT / IMPORT
+// ═══════════════════════════════════════════
+
+// Vie tiedot tiedostoon
+function exportData(){
+  const data = {
+    dishes,
+    cal,
+    avoidTags,
+    wasteTags
+  };
+
+  const blob = new Blob([JSON.stringify(data)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "ruokalista-data.json";
+  a.click();
+
+  URL.revokeObjectURL(url);
+  toast("Tiedosto ladattu!");
+}
+
+// Tuo tiedot tiedostosta
+function importData(){
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "application/json";
+
+  input.onchange = e => {
+    const file = e.target.files[0];
+    if(!file) return;
+
+    const reader = new FileReader();
+    reader.onload = e => {
+      try{
+        const data = JSON.parse(e.target.result);
+
+        dishes = data.dishes || [];
+        cal = data.cal || [];
+        avoidTags = data.avoidTags || [];
+        wasteTags = data.wasteTags || [];
+
+        saveAll();
+        renderDishes();
+        renderCalendar();
+        renderFormChips();
+
+        toast("Tiedot ladattu!");
+      }catch{
+        toast("Virhe tiedostossa!");
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  input.click();
+}
+
+window.onload = async () => {
+  // Yritä ladata pilvestä
+  if(window.fbLoad){
+    try {
+      const cloudData = await window.fbLoad();
+      if(cloudData && cloudData.dishes){
+        dishes    = cloudData.dishes    || [];
+        cal       = cloudData.cal       || Array.from({length:12},()=>Array.from({length:4},()=>[null,null,null,null]));
+        avoidTags = cloudData.avoidTags || [...DEF_AVOID];
+        wasteTags = cloudData.wasteTags || [...DEF_WASTE];
+        saveAll(); // päivitä myös localStorage
+      }
+    } catch(e){ console.error('Pilvilataus epäonnistui:', e); }
+  }
+  renderFormChips();
+  renderDishes();
+  // Kuuntele muutoksia reaaliajassa
+  if(window.fbListen){
+    window.fbListen(data => {
+      dishes    = data.dishes    || [];
+      cal       = data.cal       || Array.from({length:12},()=>Array.from({length:4},()=>[null,null,null,null]));
+      avoidTags = data.avoidTags || [...DEF_AVOID];
+      wasteTags = data.wasteTags || [...DEF_WASTE];
+      renderFormChips(); renderDishes(); renderCalendar();
+    });
+  }
+};
+
+</script>
+</body>
+</html>
