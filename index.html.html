@@ -265,6 +265,49 @@ main{padding:26px 40px;max-width:1440px;margin:0 auto;}
   .year-wrap{grid-template-columns:1fr;}
 }
 </style>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+// Your web app's Firebase configuration
+
+const firebaseConfig = {
+
+  apiKey: "AIzaSyCj6bHv3o0m30z5WvJvQgZqdssYBN5OQi4",
+
+  authDomain: "ruokapankki.firebaseapp.com",
+
+  projectId: "ruokapankki",
+
+  storageBucket: "ruokapankki.firebasestorage.app",
+
+  messagingSenderId: "674595323839",
+
+  appId: "1:674595323839:web:2c3c20fcc72c87d2c22b0a"
+
+};   
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const DATA_DOC = doc(db, "ruokalista", "mydata");
+
+  window.fbSave = async function(data) {
+    await setDoc(DATA_DOC, data);
+  };
+
+  window.fbLoad = async function() {
+    const snap = await getDoc(DATA_DOC);
+    return snap.exists() ? snap.data() : null;
+  };
+
+  window.fbListen = function(callback) {
+    onSnapshot(DATA_DOC, (snap) => {
+      if (snap.exists()) callback(snap.data());
+    });
+  };
+</script>
 </head>
 <body>
 
@@ -446,7 +489,16 @@ let formMonths=null; // null = all months
 let selAvoid=new Set();
 let selWaste=new Set();
 
-function saveAll(){save('rl_dishes',dishes);save('rl_cal',cal);save('rl_avoid',avoidTags);save('rl_waste',wasteTags);}
+function saveAll(){
+  save('rl_dishes',dishes);
+  save('rl_cal',cal);
+  save('rl_avoid',avoidTags);
+  save('rl_waste',wasteTags);
+  // Tallenna myös pilveen
+  if(window.fbSave){
+    window.fbSave({dishes, cal, avoidTags, wasteTags}).catch(console.error);
+  }
+}
 
 // ═══════════════════════════════════════════
 // VIEWS
@@ -994,9 +1046,32 @@ function importData(){
   input.click();
 }
 
-window.onload = () => {
+window.onload = async () => {
+  // Yritä ladata pilvestä
+  if(window.fbLoad){
+    try {
+      const cloudData = await window.fbLoad();
+      if(cloudData && cloudData.dishes){
+        dishes    = cloudData.dishes    || [];
+        cal       = cloudData.cal       || Array.from({length:12},()=>Array.from({length:4},()=>[null,null,null,null]));
+        avoidTags = cloudData.avoidTags || [...DEF_AVOID];
+        wasteTags = cloudData.wasteTags || [...DEF_WASTE];
+        saveAll(); // päivitä myös localStorage
+      }
+    } catch(e){ console.error('Pilvilataus epäonnistui:', e); }
+  }
   renderFormChips();
   renderDishes();
+  // Kuuntele muutoksia reaaliajassa
+  if(window.fbListen){
+    window.fbListen(data => {
+      dishes    = data.dishes    || [];
+      cal       = data.cal       || Array.from({length:12},()=>Array.from({length:4},()=>[null,null,null,null]));
+      avoidTags = data.avoidTags || [...DEF_AVOID];
+      wasteTags = data.wasteTags || [...DEF_WASTE];
+      renderFormChips(); renderDishes(); renderCalendar();
+    });
+  }
 };
 
 </script>
