@@ -644,10 +644,26 @@ function getBestDish(mi, wi, si){
   const cat = slotCat(wi, si);
 
   // kaikki mahdolliset ruuat tähän slottiin
-  let candidates = dishes.filter(d =>
-    dishAvailableForMonth(d, mi) &&
-    (si !== 0 || cat === 'ekstra' || d.cat === cat)
-  );
+ let candidates = dishes.filter(d => {
+  if(!dishAvailableForMonth(d, mi)) return false;
+
+  // PROTEIINI
+  if(si === 0){
+    if(cat === 'ekstra') return true;
+    return d.cat === cat;
+  }
+
+  // KASVIS
+  if(cat === 'kasvis') return d.cat === 'kasvis';
+
+  // KEITTO
+  if(cat === 'keitto') return d.cat === 'keitto';
+
+  // VIIKONLOPPU
+  if(cat === 'vkl') return true;
+
+  return false;
+});
 
   if(!candidates.length) return null;
 
