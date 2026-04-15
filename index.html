@@ -282,25 +282,64 @@ main{padding:26px 40px;max-width:1440px;margin:0 auto;}
   const db = getFirestore(app);
   const DATA_DOC = doc(db, "ruokalista", "mydata");
 
+  // Muunna cal tallennusta varten (Firebase ei tue sisäkkäisiä taulukoita)
+  function calToFirebase(cal) {
+    const result = {};
+    for (let m = 0; m < 12; m++) {
+      for (let w = 0; w < 4; w++) {
+        for (let s = 0; s < 4; s++) {
+          result[`cal_${m}_${w}_${s}`] = cal[m][w][s] ?? null;
+        }
+      }
+    }
+    return result;
+  }
+
+  // Muunna takaisin normaaliksi cal-taulukoksi
+  function calFromFirebase(data) {
+    const cal = Array.from({length:12}, () =>
+      Array.from({length:4}, () => [null, null, null, null])
+    );
+    for (let m = 0; m < 12; m++) {
+      for (let w = 0; w < 4; w++) {
+        for (let s = 0; s < 4; s++) {
+          const val = data[`cal_${m}_${w}_${s}`];
+          cal[m][w][s] = val !== undefined ? val : null;
+        }
+      }
+    }
+    return cal;
+  }
+
   async function fbSave(data) {
-    await setDoc(DATA_DOC, data);
+    await setDoc(DATA_DOC, {
+      dishes: data.dishes,
+      avoidTags: data.avoidTags,
+      wasteTags: data.wasteTags,
+      ...calToFirebase(data.cal)
+    });
   }
 
   async function fbLoad() {
     const snap = await getDoc(DATA_DOC);
-    return snap.exists() ? snap.data() : null;
+    if (!snap.exists()) return null;
+    const data = snap.data();
+    return {
+      dishes: data.dishes || [],
+      avoidTags: data.avoidTags || [],
+      wasteTags: data.wasteTags || [],
+      cal: calFromFirebase(data)
+    };
   }
 
   async function startApp() {
-    // Lataa data pilvestä
     try {
       const cloudData = await fbLoad();
       if (cloudData && cloudData.dishes) {
-        dishes    = cloudData.dishes    || [];
-        cal       = cloudData.cal       || Array.from({length:12},()=>Array.from({length:4},()=>[null,null,null,null]));
-        avoidTags = cloudData.avoidTags || [...DEF_AVOID];
-        wasteTags = cloudData.wasteTags || [...DEF_WASTE];
-        // Päivitä myös localStorage
+        dishes    = cloudData.dishes;
+        cal       = cloudData.cal;
+        avoidTags = cloudData.avoidTags;
+        wasteTags = cloudData.wasteTags;
         save('rl_dishes', dishes);
         save('rl_cal', cal);
         save('rl_avoid', avoidTags);
@@ -317,10 +356,16 @@ main{padding:26px 40px;max-width:1440px;margin:0 auto;}
     onSnapshot(DATA_DOC, (snap) => {
       if (!snap.exists()) return;
       const data = snap.data();
-      dishes    = data.dishes    || [];
-      cal       = data.cal       || Array.from({length:12},()=>Array.from({length:4},()=>[null,null,null,null]));
-      avoidTags = data.avoidTags || [...DEF_AVOID];
-      wasteTags = data.wasteTags || [...DEF_WASTE];
+      const incoming = {
+        dishes:    data.dishes    || [],
+        avoidTags: data.avoidTags || [],
+        wasteTags: data.wasteTags || [],
+        cal:       calFromFirebase(data)
+      };
+      dishes    = incoming.dishes;
+      cal       = incoming.cal;
+      avoidTags = incoming.avoidTags;
+      wasteTags = incoming.wasteTags;
       save('rl_dishes', dishes);
       save('rl_cal', cal);
       save('rl_avoid', avoidTags);
@@ -330,11 +375,9 @@ main{padding:26px 40px;max-width:1440px;margin:0 auto;}
       renderCalendar();
     });
 
-    // Tee fbSave käytettäväksi muulle koodille
     window.fbSave = fbSave;
   }
 
-  // Käynnistä heti kun sivu on latautunut
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', startApp);
   } else {
