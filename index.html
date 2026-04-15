@@ -490,13 +490,17 @@ let selAvoid=new Set();
 let selWaste=new Set();
 
 function saveAll(){
-  save('rl_dishes',dishes);
-  save('rl_cal',cal);
-  save('rl_avoid',avoidTags);
-  save('rl_waste',wasteTags);
-  // Tallenna myös pilveen
+  // Tallenna localStorageen (varmuus)
+  save('rl_dishes', dishes);
+  save('rl_cal', cal);
+  save('rl_avoid', avoidTags);
+  save('rl_waste', wasteTags);
+
+  // Tallenna Firebaseen
   if(window.fbSave){
-    window.fbSave({dishes, cal, avoidTags, wasteTags}).catch(console.error);
+    window.fbSave({dishes, cal, avoidTags, wasteTags})
+      .then(()=>console.log("Tallennettu pilveen"))
+      .catch(err=>console.error("Firebase virhe:", err));
   }
 }
 
